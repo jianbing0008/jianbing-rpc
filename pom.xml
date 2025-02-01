@@ -10,6 +10,13 @@
     <packaging>pom</packaging>
     <modules>
         <module>demo</module>
+        <module>framework</module>
+        <module>framework/common</module>
+        <module>framework/core</module>
+        <module>manager</module>
+        <module>demo/client-demo</module>
+        <module>demo/provider-demo</module>
+        <module>demo/api</module>
     </modules>
 
     <properties>
@@ -18,10 +25,14 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <netty.version>4.1.101.Final</netty.version>
         <junit.version>4.13.2</junit.version>
+        <zookeeper.version>3.8.4</zookeeper.version>
+        <logback.version>1.5.16</logback.version>
+        <fastjson2.version>2.0.53</fastjson2.version>
+        <commons-lang3.version>3.12.0</commons-lang3.version>
+        <lombok.version>1.18.30</lombok.version>
     </properties>
 
     <dependencies>
-
     </dependencies>
 
 <!--    父工程版本管理-->
@@ -36,6 +47,36 @@
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>${junit.version}</version>
+            </dependency>
+<!--            zookeeper-->
+            <dependency>
+                <groupId>org.apache.zookeeper</groupId>
+                <artifactId>zookeeper</artifactId>
+                <version>${zookeeper.version}</version>
+            </dependency>
+<!--            日志-->
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+<!--            fastjson2-->
+            <dependency>
+                <groupId>com.alibaba.fastjson2</groupId>
+                <artifactId>fastjson2</artifactId>
+                <version>${fastjson2.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
+            </dependency>
+<!--            lombok-->
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
             </dependency>
 
         </dependencies>
