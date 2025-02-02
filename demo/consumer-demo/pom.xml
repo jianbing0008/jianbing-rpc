@@ -10,7 +10,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>client-demo</artifactId>
+    <artifactId>consumer-demo</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -22,6 +22,11 @@
         <dependency>
             <groupId>com.jianbing</groupId>
             <artifactId>api</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.jianbing</groupId>
+            <artifactId>core</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
