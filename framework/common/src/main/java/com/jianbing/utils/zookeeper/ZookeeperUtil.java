@@ -87,4 +87,20 @@ public class ZookeeperUtil {
             throw new ZookeeperException();
         }
     }
+
+    /**
+     * 判断节点是否存在
+     * @param zooKeeper zookeeper实例
+     * @param path 节点路径
+     * @param watcher 监听器
+     * @return true：存在  false：不存在
+     */
+    public static boolean exists(ZooKeeper zooKeeper, String path, Watcher watcher){
+        try {
+            return zooKeeper.exists(path,watcher) != null;
+        } catch (KeeperException | InterruptedException e) {
+            log.error("判断节点[{}]是否存在时发生异常",path,e);
+            throw new ZookeeperException(e);
+        }
+    }
 }
