@@ -1,10 +1,12 @@
 package com.jianbing;
 
+import com.jianbing.utils.zookeeper.ZookeeperNode;
+import com.jianbing.utils.zookeeper.ZookeeperUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.zookeeper.*;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.ZooKeeper;
 
-import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
+import java.util.List;
 
 /**
  * 注册中心的管理页面
@@ -26,44 +28,26 @@ public class Application {
         //             └─ node3 [data]
         //  └─ config
 
+        // 创建 ZooKeeper 客户端实例
+        ZooKeeper zooKeeper = ZookeeperUtil.createZooKeeper();
 
-        ZooKeeper zooKeeper;
-        CountDownLatch countDownLatch = new CountDownLatch(1);
+        // 定义基础路径常量
+        String basePath = "/rpc-metadata";
+        String providersPath = basePath + "/providers";
+        String consumersPath = basePath + "/consumers";
 
-        String connectString = Constant.DEFAULT_ZK_CONNECT;
-        int timeout = Constant.ZK_SESSION_TIMEOUT;
+        // 创建基础节点实例
+        ZookeeperNode baseNode = new ZookeeperNode(basePath, "".getBytes());
+        ZookeeperNode providersNode = new ZookeeperNode(providersPath, "".getBytes());
+        ZookeeperNode consumersNode = new ZookeeperNode(consumersPath, "".getBytes());
 
-        try {
-            zooKeeper = new ZooKeeper(connectString, timeout, watchedEvent -> {
-                if (watchedEvent.getState() == Watcher.Event.KeeperState.SyncConnected) {
-                    System.out.println("客户端连接成功");
-                    countDownLatch.countDown();
-                }
-            });
+        // 遍历基础节点列表，创建持久节点
+        List.of(baseNode, providersNode, consumersNode).forEach(node -> {
+            ZookeeperUtil.createNode(zooKeeper, node, null, CreateMode.PERSISTENT);
+        });
 
-            countDownLatch.await();
-            //定义节点和数据
-            String basePath = "/rpc-metadata";
-            String providersPath = basePath + "/providers";
-            String consumersPath = basePath + "/consumers";
-
-            if(zooKeeper.exists(basePath,null)==null){
-                String result = zooKeeper.create(basePath, "".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-                log.info("创建根节点【{}】成功创建：",result);
-            }
-            if(zooKeeper.exists(providersPath,null)==null){
-                String result = zooKeeper.create(providersPath, "".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-                log.info("节点【{}】成功创建：",result);
-            }
-            if(zooKeeper.exists(consumersPath,null)==null){
-                String result = zooKeeper.create(consumersPath, "".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-                log.info("节点【{}】成功创建：",result);
-            }
-
-
-        } catch (IOException  | KeeperException |InterruptedException e) {
-            log.error("创建基础目录时失败",e);
-        }
+        // 关闭 ZooKeeper 客户端连接
+        ZookeeperUtil.closeZooKeeper(zooKeeper);
 
     }
 
