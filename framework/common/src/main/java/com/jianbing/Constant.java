@@ -8,6 +8,6 @@ public class Constant {
     public static final int ZK_SESSION_TIMEOUT = 10000;
 
     // 服务提供方和调用方在注册中心的基础路径
-    public static final String BASE_PROVIDERS_PATH = "/rpc-metadata-providers";
-    public static final String BASE_CONSUMERS_PATH = "/rpc-metadata-consumers";
+    public static final String BASE_PROVIDERS_PATH = "/rpc-metadata/providers";
+    public static final String BASE_CONSUMERS_PATH = "/rpc-metadata/consumers";
 }

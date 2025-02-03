@@ -1,5 +1,6 @@
 package com.jianbing;
 
+import com.jianbing.utils.NetUtils;
 import com.jianbing.utils.zookeeper.ZookeeperNode;
 import com.jianbing.utils.zookeeper.ZookeeperUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ public class RpcBootstrap {
     private String applicationName = "default";
     private RegistryConfig registryConfig;
     private ProtocolConfig protocolConfig;
+    private int port = 8088;
 
     // 维护一个zookeeper实例
     private ZooKeeper zooKeeper;
@@ -76,18 +78,22 @@ public class RpcBootstrap {
     public RpcBootstrap publish(ServiceConfig<?> service) {
 
         // 服务名称的节点
-        String parentNode = Constant.BASE_PROVIDERS_PATH +"/"+ service.getInterface().getName();
+        String parentNodePath = Constant.BASE_PROVIDERS_PATH +"/"+ service.getInterface().getName();
         //这个节点是一个持久节点
-        if(!ZookeeperUtil.exists(zooKeeper, parentNode, null)){
-            ZookeeperNode node = new ZookeeperNode(parentNode, "".getBytes());
-            ZookeeperUtil.createNode(zooKeeper, node, null, CreateMode.PERSISTENT);
+        if(!ZookeeperUtil.exists(zooKeeper, parentNodePath, null)){
+            ZookeeperUtil.createNode(zooKeeper, new ZookeeperNode(parentNodePath, "".getBytes()), null, CreateMode.PERSISTENT);
         }
-        //创建本机的临时节点
-
-
-        if(log.isDebugEnabled()){
-            log.debug("服务{},已经被注册", service.getInterface().getName());
+        //创建本机的临时节点,ip:port
+        //服务提供方(netty)的端口一般自己设定，我们还需要一个获取ip的方法
+        //ip我们通常是需要一个局域网ip,不是127.0.0.1，也不是ipv6的
+        //如：192.168.1.1:8088
+        String nodePath = parentNodePath + "/" + NetUtils.getIp() + ":" + port;
+        if(!ZookeeperUtil.exists(zooKeeper, nodePath, null)){
+            ZookeeperUtil.createNode(zooKeeper, new ZookeeperNode(nodePath, "".getBytes()), null, CreateMode.EPHEMERAL);
         }
+
+        log.info("服务{},已经被注册", service.getInterface().getName());
+
         return this;
     }
 
@@ -104,6 +110,11 @@ public class RpcBootstrap {
      * 启动netty服务
      */
     public void start() {
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
