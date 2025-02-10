@@ -1,5 +1,6 @@
 package com.jianbing;
 
+import com.jianbing.discovery.RegistryConfig;
 import com.jianbing.impl.HelloRpcImpl;
 
 public class Application {

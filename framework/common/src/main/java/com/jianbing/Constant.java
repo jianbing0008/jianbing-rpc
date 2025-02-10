@@ -5,7 +5,7 @@ public class Constant {
     public static final String DEFAULT_ZK_CONNECT = "127.0.0.1:2181";
 
     // 超时时间
-    public static final int ZK_SESSION_TIMEOUT = 10000;
+    public static final int TIMEOUT = 10000;
 
     // 服务提供方和调用方在注册中心的基础路径
     public static final String BASE_PROVIDERS_PATH = "/rpc-metadata/providers";

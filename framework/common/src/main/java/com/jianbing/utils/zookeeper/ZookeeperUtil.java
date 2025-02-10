@@ -21,7 +21,7 @@ public class ZookeeperUtil {
         CountDownLatch countDownLatch = new CountDownLatch(1);
 
         String connectString = Constant.DEFAULT_ZK_CONNECT;
-        int timeout = Constant.ZK_SESSION_TIMEOUT;
+        int timeout = Constant.TIMEOUT;
 
         return createZooKeeper(connectString, timeout);
     }

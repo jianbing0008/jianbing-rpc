@@ -1,6 +1,6 @@
 package com.jianbing;
 
-import java.lang.ref.Reference;
+import com.jianbing.discovery.RegistryConfig;
 
 public class Application {
     public static void main(String[] args) {
