@@ -103,7 +103,7 @@ public class RpcBootstrap {
      */
     public void start() {
         try {
-            Thread.sleep(10000);
+            Thread.sleep(1000000000);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -116,6 +116,8 @@ public class RpcBootstrap {
     public RpcBootstrap reference(ReferenceConfig<?> reference) {
         // 在这个方法里我们是否可以拿到相关的配置项-注册中心
         // 配置reference，将来调用get方法时，方便生成代理对象
+        // 1.reference 需要一个注册中心
+        reference.setRegistry(registry);
         return this;
     }
 

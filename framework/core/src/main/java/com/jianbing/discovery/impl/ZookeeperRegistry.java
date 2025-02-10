@@ -3,12 +3,16 @@ package com.jianbing.discovery.impl;
 import com.jianbing.Constant;
 import com.jianbing.ServiceConfig;
 import com.jianbing.discovery.AbstractRegistry;
+import com.jianbing.excepetions.DiscoveryException;
 import com.jianbing.utils.NetUtils;
 import com.jianbing.utils.zookeeper.ZookeeperNode;
 import com.jianbing.utils.zookeeper.ZookeeperUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooKeeper;
+
+import java.net.InetSocketAddress;
+import java.util.List;
 
 @Slf4j
 public class ZookeeperRegistry extends AbstractRegistry {
@@ -42,5 +46,22 @@ public class ZookeeperRegistry extends AbstractRegistry {
         }
 
         log.info("服务{},已经被注册", service.getInterface().getName());
+    }
+
+    @Override
+    public InetSocketAddress lookup(String serviceName) {
+        // 1.找到服务对应的节点
+        String ServiceNode = Constant.BASE_PROVIDERS_PATH +"/"+ serviceName;
+        // 2.获取该节点的子节点,如：192.168.1.1:8088
+        List<String> children = ZookeeperUtil.getChildren(zooKeeper, ServiceNode, null);
+        // 3.将子节点转换成InetSocketAddress(获取所有可用的服务节点)
+        List<InetSocketAddress> collect = children.stream().map(ipString -> {
+            String[] ipAndPort = ipString.split(":");
+            return new InetSocketAddress(ipAndPort[0], Integer.parseInt(ipAndPort[1]));
+        }).toList();
+        if(collect.isEmpty()){
+            throw new DiscoveryException("没有找到可用的服务主机");
+        }
+        return collect.get(0);
     }
 }
