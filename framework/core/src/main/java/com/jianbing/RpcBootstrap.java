@@ -4,7 +4,9 @@ import com.jianbing.discovery.Registry;
 import com.jianbing.discovery.RegistryConfig;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 public class RpcBootstrap {
@@ -23,6 +25,9 @@ public class RpcBootstrap {
 
     // 注册中心
     private Registry registry;
+
+    // 维护一个服务列表，用于记录所有暴露的服务 key:interface的全限定名 value:ServiceConfig
+    private static final Map<String,ServiceConfig<?>> SERVICE_LIST = new HashMap<>(16);
 
     // 维护一个zookeeper实例
     //private ZooKeeper zooKeeper;
@@ -76,6 +81,8 @@ public class RpcBootstrap {
     public RpcBootstrap publish(ServiceConfig<?> service) {
         // 抽象了服务注册，具体注册逻辑在registry中实现
         registry.register(service);
+        // 维护一个服务列表，用于记录所有暴露的服务
+        SERVICE_LIST.put(service.getInterface().getName(), service);
         return this;
     }
 
