@@ -62,6 +62,8 @@ public class ZookeeperRegistry extends AbstractRegistry {
         if(collect.isEmpty()){
             throw new DiscoveryException("没有找到可用的服务主机");
         }
+        //todo: 每次调用相关方法时都需要从注册中心拉取服务列表吗？ 本地缓存 + watcher
+        //todo: 如何合理选择一个可用的服务，而不是只获取第一个     负载均衡策略
         return collect.get(0);
     }
 }

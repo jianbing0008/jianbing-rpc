@@ -2,11 +2,21 @@ package com.jianbing;
 
 import com.jianbing.discovery.Registry;
 import com.jianbing.discovery.RegistryConfig;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 
+import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public class RpcBootstrap {
@@ -25,6 +35,9 @@ public class RpcBootstrap {
 
     // 注册中心
     private Registry registry;
+
+    // 连接的缓存, 对象为key,要看是否重写equals和toString
+    public static final Map<InetSocketAddress, Channel> CHANNEL_CACHE = new ConcurrentHashMap<>(16);
 
     // 维护一个服务列表，用于记录所有暴露的服务 key:interface的全限定名 value:ServiceConfig
     private static final Map<String,ServiceConfig<?>> SERVICE_LIST = new HashMap<>(16);
@@ -102,10 +115,36 @@ public class RpcBootstrap {
      * 启动netty服务
      */
     public void start() {
+        // 1、创建EventLoop，老板只负责接受客户端连接，worker负责处理客户端的请求
+        EventLoopGroup boss = new NioEventLoopGroup(1);
+        EventLoopGroup worker = new NioEventLoopGroup();// 默认是cpu核数*2
+
         try {
-            Thread.sleep(1000000000);
+            // 2、需要服务器引导程序
+            ServerBootstrap serverBootstrap = new ServerBootstrap();
+            // 3、设置服务器
+            serverBootstrap.group(boss, worker)
+                    .channel(NioServerSocketChannel.class)
+                    .childHandler(new ChannelInitializer<SocketChannel>(){
+                        @Override
+                        protected void initChannel(SocketChannel socketChannel) throws Exception {
+                            //核心，在这里添加很多入站和出战的handler
+                            socketChannel.pipeline().addLast(null);
+                        }
+                    });
+            //4、绑定端口
+            ChannelFuture channelFuture = serverBootstrap.bind(port).sync();
+            channelFuture.channel().closeFuture().sync();
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+        } finally {
+            // 5、优雅的关闭
+            try {
+                boss.shutdownGracefully().sync();
+                worker.shutdownGracefully().sync();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
