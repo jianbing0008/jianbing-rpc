@@ -3,8 +3,9 @@ package com.jianbing;
 import com.jianbing.discovery.NettyBootStrapInitializer;
 import com.jianbing.discovery.Registry;
 import com.jianbing.excepetions.NetworkException;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,6 +15,9 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Data
@@ -60,7 +64,20 @@ public class ReferenceConfig<T> {
                 // 尝试从缓存中获取一个通道
                 Channel channel = RpcBootstrap.CHANNEL_CACHE.get(address);
                 if(channel == null){// 建立一个新的channel
-                    channel = NettyBootStrapInitializer.getBootstrap().connect(address).await().channel();
+                    CompletableFuture<Channel> channelFuture = new CompletableFuture<>();
+                    NettyBootStrapInitializer.getBootstrap().connect(address).addListener((ChannelFutureListener) promise -> {
+                        if(promise.isDone()){
+                            //异步完成
+                            if(log.isDebugEnabled()){
+                                log.debug("连接服务器【{}】成功", address);
+                            }
+                            channelFuture.complete(promise.channel());
+                        }else if(!promise.isSuccess()){
+                            channelFuture.completeExceptionally(promise.cause());
+                        }
+                    });
+
+                    channel = channelFuture.get(3, TimeUnit.SECONDS);
                     // 将新的channel放入缓存中
                     RpcBootstrap.CHANNEL_CACHE.put(address, channel);
                 }
@@ -70,8 +87,40 @@ public class ReferenceConfig<T> {
                 }
 
 
-                ChannelFuture channelFuture = channel.writeAndFlush(new Object());
+                /**
+                 * --------------------封装报文---------------------------
+                 */
 
+
+
+                /**
+                 * --------------------同步策略---------------------------
+                 */
+//                ChannelFuture channelFuture = channel.writeAndFlush(new Object());
+//                if (channelFuture.isDone()){
+//                    Object now = channelFuture.getNow();
+//                }else if(!channelFuture.isSuccess()){
+//                    Throwable cause = channelFuture.cause();
+//                    throw new RuntimeException(cause);
+//                }
+
+
+
+                /**
+                 * --------------------异步策略---------------------------
+                 */
+                //todo:  需要将 CompletableFuture 暴露出去
+                CompletableFuture<Object> completableFuture = new CompletableFuture<>();
+                channel.writeAndFlush(Unpooled.copiedBuffer("--Hello--".getBytes(StandardCharsets.UTF_8))).addListener( (ChannelFutureListener) promise -> {
+                    //将CompletableFuture暴露并挂起，得到服务器提供方响应时调用complete方法
+//                    if(promise.isDone()){
+//                        completableFuture.complete(promise.getNow());
+//                    }
+                    if(!promise.isSuccess()){
+                    completableFuture.completeExceptionally(promise.cause());
+                    }
+                });
+//                completableFuture.get(3, TimeUnit.SECONDS);
                 return null;
             }
         });

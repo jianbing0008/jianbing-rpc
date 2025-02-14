@@ -3,16 +3,16 @@ package com.jianbing;
 import com.jianbing.discovery.Registry;
 import com.jianbing.discovery.RegistryConfig;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.EventLoopGroup;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -129,7 +129,14 @@ public class RpcBootstrap {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
                             //核心，在这里添加很多入站和出战的handler
-                            socketChannel.pipeline().addLast(null);
+                            socketChannel.pipeline().addLast(new SimpleChannelInboundHandler<>() {
+                                @Override
+                                protected void channelRead0(ChannelHandlerContext channelHandlerContext, Object msg) throws Exception {
+                                    ByteBuf byteBuf = (ByteBuf) msg;
+                                    log.info("服务端收到消息：{}", byteBuf.toString(io.netty.util.CharsetUtil.UTF_8));
+                                    channelHandlerContext.channel().writeAndFlush(Unpooled.copiedBuffer("Hello RpcClient".getBytes(StandardCharsets.UTF_8)));
+                                }
+                            });
                         }
                     });
             //4、绑定端口
