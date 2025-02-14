@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -41,6 +42,9 @@ public class RpcBootstrap {
 
     // 维护一个服务列表，用于记录所有暴露的服务 key:interface的全限定名 value:ServiceConfig
     private static final Map<String,ServiceConfig<?>> SERVICE_LIST = new HashMap<>(16);
+
+    // 维护一个对外挂起的 CompletableFuture
+    public static final Map<Long, CompletableFuture<Object>> PENDING_REQUEST = new ConcurrentHashMap<>(128);
 
     // 维护一个zookeeper实例
     //private ZooKeeper zooKeeper;
@@ -134,7 +138,7 @@ public class RpcBootstrap {
                                 protected void channelRead0(ChannelHandlerContext channelHandlerContext, Object msg) throws Exception {
                                     ByteBuf byteBuf = (ByteBuf) msg;
                                     log.info("服务端收到消息：{}", byteBuf.toString(io.netty.util.CharsetUtil.UTF_8));
-                                    channelHandlerContext.channel().writeAndFlush(Unpooled.copiedBuffer("Hello RpcClient".getBytes(StandardCharsets.UTF_8)));
+                                    channelHandlerContext.channel().writeAndFlush(Unpooled.copiedBuffer("rpc--hello".getBytes(StandardCharsets.UTF_8)));
                                 }
                             });
                         }

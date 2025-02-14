@@ -109,19 +109,20 @@ public class ReferenceConfig<T> {
                 /**
                  * --------------------异步策略---------------------------
                  */
-                //todo:  需要将 CompletableFuture 暴露出去
+
+                // 创建异步结果容器
                 CompletableFuture<Object> completableFuture = new CompletableFuture<>();
-                channel.writeAndFlush(Unpooled.copiedBuffer("--Hello--".getBytes(StandardCharsets.UTF_8))).addListener( (ChannelFutureListener) promise -> {
-                    //将CompletableFuture暴露并挂起，得到服务器提供方响应时调用complete方法
-//                    if(promise.isDone()){
-//                        completableFuture.complete(promise.getNow());
-//                    }
+                RpcBootstrap.PENDING_REQUEST.put(1L, completableFuture);
+
+                // 网络通信（Netty异步写入）
+                channel.writeAndFlush(Unpooled.copiedBuffer("--Hello--server--".getBytes(StandardCharsets.UTF_8))).addListener( (ChannelFutureListener) promise -> {
+
                     if(!promise.isSuccess()){
                     completableFuture.completeExceptionally(promise.cause());
                     }
                 });
-//                completableFuture.get(3, TimeUnit.SECONDS);
-                return null;
+                // 阻塞等待结果（带超时）
+                return completableFuture.get(10, TimeUnit.SECONDS);
             }
         });
         return (T) helloProxy;
