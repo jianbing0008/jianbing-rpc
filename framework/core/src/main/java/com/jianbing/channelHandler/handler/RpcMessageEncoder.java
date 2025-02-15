@@ -54,9 +54,9 @@ public class RpcMessageEncoder extends MessageToByteEncoder<RpcRequest> {
         byteBuf.writerIndex(byteBuf.writerIndex() + 4);
 
         // 3个1B类型
+        byteBuf.writeByte(rpcRequest.getRequestType());
         byteBuf.writeByte(rpcRequest.getSerializeType());
         byteBuf.writeByte(rpcRequest.getCompressType());
-        byteBuf.writeByte(rpcRequest.getRequestType());
 
         // 8B请求id
         byteBuf.writeLong(rpcRequest.getRequestId());
@@ -69,12 +69,15 @@ public class RpcMessageEncoder extends MessageToByteEncoder<RpcRequest> {
         int writerIndex = byteBuf.writerIndex();
         // 将写指针的位置移动到总长度的位置上
         byteBuf.writerIndex(MessageFormatConstant.MAGIC.length
-                + MessageFormatConstant.VERSION
-                + MessageFormatConstant.HEADER_LENGTH);
+                + MessageFormatConstant.VERSION_LENGTH
+                + MessageFormatConstant.HEADER_FIELD_LENGTH);
         // 将总长度写入到总长度的位置上
         byteBuf.writeInt(MessageFormatConstant.HEADER_LENGTH + body.length);
         // 将写指针归位
         byteBuf.writerIndex(writerIndex);
+
+        // Encoder中打印写入的full_length
+        log.debug("Total  length written: {}", MessageFormatConstant.HEADER_LENGTH + body.length);
 
 
     }
@@ -93,6 +96,9 @@ public class RpcMessageEncoder extends MessageToByteEncoder<RpcRequest> {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ObjectOutputStream outputStream = new ObjectOutputStream(baos);
             outputStream.writeObject(requestPayload);
+
+            // 压缩
+
             return baos.toByteArray();
         } catch (IOException e) {
             log.error("序列化失败", e);
