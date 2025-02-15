@@ -1,5 +1,6 @@
 package com.jianbing;
 
+import com.jianbing.channelHandler.handler.MethodCallHandler;
 import com.jianbing.channelHandler.handler.RpcMessageDecoder;
 import com.jianbing.discovery.Registry;
 import com.jianbing.discovery.RegistryConfig;
@@ -43,7 +44,7 @@ public class RpcBootstrap {
     public static final Map<InetSocketAddress, Channel> CHANNEL_CACHE = new ConcurrentHashMap<>(16);
 
     // 维护一个服务列表，用于记录所有暴露的服务 key:interface的全限定名 value:ServiceConfig
-    private static final Map<String,ServiceConfig<?>> SERVICE_LIST = new HashMap<>(16);
+    public static final Map<String,ServiceConfig<?>> SERVICE_LIST = new HashMap<>(16);
 
     // 维护一个对外挂起的 CompletableFuture
     public static final Map<Long, CompletableFuture<Object>> PENDING_REQUEST = new ConcurrentHashMap<>(128);
@@ -135,8 +136,11 @@ public class RpcBootstrap {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
                             //核心，在这里添加很多入站和出战的handler
-                            socketChannel.pipeline().addLast(new LoggingHandler())
-                                                    .addLast(new RpcMessageDecoder());
+                            socketChannel.pipeline().addLast(new LoggingHandler()) //日志
+                                                    // 解码
+                                                    .addLast(new RpcMessageDecoder())
+                                                    // 根据请求进行方法调用
+                                                    .addLast(new MethodCallHandler());
                         }
                     });
             //4、绑定端口
