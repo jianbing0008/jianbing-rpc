@@ -51,7 +51,7 @@ public class RpcMessageEncoder extends MessageToByteEncoder<RpcRequest> {
         byteBuf.writeShort(MessageFormatConstant.HEADER_LENGTH);
 
         // 总长度不清楚，故将写入索引向前移动4个字节，用于跳过当前写入位置后的4个字节空间
-        byteBuf.writerIndex(byteBuf.writerIndex() + 4);
+        byteBuf.writerIndex(byteBuf.writerIndex() + MessageFormatConstant.FULL_FIELD_LENGTH);
 
         // 3个1B类型
         byteBuf.writeByte(rpcRequest.getRequestType());
@@ -63,7 +63,12 @@ public class RpcMessageEncoder extends MessageToByteEncoder<RpcRequest> {
 
         // 写入请求体（requestPayload）
         byte[] body = getBodyBytes(rpcRequest.getRequestPayload());
-        byteBuf.writeBytes(body);
+        if(body != null){
+            byteBuf.writeBytes(body);
+        }
+        // 如果是心跳检测，则body=0
+        int bodyLength = body==null? 0 : body.length;
+
 
         // 先保存当前写指针的位置
         int writerIndex = byteBuf.writerIndex();
@@ -72,14 +77,12 @@ public class RpcMessageEncoder extends MessageToByteEncoder<RpcRequest> {
                 + MessageFormatConstant.VERSION_LENGTH
                 + MessageFormatConstant.HEADER_FIELD_LENGTH);
         // 将总长度写入到总长度的位置上
-        byteBuf.writeInt(MessageFormatConstant.HEADER_LENGTH + body.length);
+        byteBuf.writeInt(MessageFormatConstant.HEADER_LENGTH + bodyLength);
         // 将写指针归位
         byteBuf.writerIndex(writerIndex);
 
         // Encoder中打印写入的full_length
         log.debug("Total  length written: {}", MessageFormatConstant.HEADER_LENGTH + body.length);
-
-
     }
 
     /**
@@ -90,7 +93,10 @@ public class RpcMessageEncoder extends MessageToByteEncoder<RpcRequest> {
      * @throws RuntimeException 如果序列化过程中发生IO异常，则抛出运行时异常
      */
     private byte[] getBodyBytes(RequestPayload requestPayload) {
-        //todo: 需要针对不同的消息类型做不同的处理。 心跳请求没有payLoad
+        //心跳请求没有payLoad, 直接返回null
+        if (requestPayload == null) {
+            return null;
+        }
         try {
             // 序列化
             ByteArrayOutputStream baos = new ByteArrayOutputStream();

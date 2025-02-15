@@ -1,5 +1,6 @@
 package com.jianbing.channelHandler.handler;
 
+import com.jianbing.enumeration.RequestType;
 import com.jianbing.transport.message.MessageFormatConstant;
 import com.jianbing.transport.message.RequestPayload;
 import com.jianbing.transport.message.RpcRequest;
@@ -93,7 +94,7 @@ public class RpcMessageDecoder extends LengthFieldBasedFrameDecoder {
         // 4、解析总长度
         int fullLength = byteBuf.readInt();
 
-        // 5、解析请求类型 todo:判断是否为心跳检测
+        // 5、解析请求类型
         byte requestType = byteBuf.readByte();
 
         // 6、解析序列化类型
@@ -115,8 +116,8 @@ public class RpcMessageDecoder extends LengthFieldBasedFrameDecoder {
         // Decoder中打印读取的magic、version、full_length等字段
         log.debug("read_full_length: {}", fullLength);
 
-        //todo： 心跳检测没有负载，此处可以判断并直接返回
-        if (requestType == 2) {
+        //心跳检测没有负载，此处可以判断并直接返回
+        if (requestType == RequestType.HEART_BEAT.getCode()) {
             return rpcRequest;
         }
 

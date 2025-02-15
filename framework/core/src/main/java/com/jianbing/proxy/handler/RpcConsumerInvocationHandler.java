@@ -3,6 +3,7 @@ package com.jianbing.proxy.handler;
 import com.jianbing.RpcBootstrap;
 import com.jianbing.discovery.NettyBootStrapInitializer;
 import com.jianbing.discovery.Registry;
+import com.jianbing.enumeration.RequestType;
 import com.jianbing.excepetions.DiscoveryException;
 import com.jianbing.excepetions.NetworkException;
 import com.jianbing.transport.message.RequestPayload;
@@ -63,7 +64,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
         // todo: 需要对各种请求id和类型做处理
         RpcRequest rpcRequest = RpcRequest.builder()
                 .requestId(1L)
-                .requestType((byte) 1)
+                .requestType(RequestType.REQUEST.getCode())
                 .compressType((byte) 1)
                 .serializeType((byte) 1)
                 .requestPayload(requestPayload)
