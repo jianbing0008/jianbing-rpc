@@ -2,6 +2,8 @@ package com.jianbing.transport.message;
 
 import lombok.*;
 
+import java.io.Serializable;
+
 /**
  * 请求调用方所请求的接口方法信息
  * helloRpc.sayHi("你好");
@@ -11,7 +13,7 @@ import lombok.*;
 @NoArgsConstructor
 @ToString
 @Builder
-public class RequestPayload {
+public class RequestPayload implements Serializable {
     // 请求的接口名称 -- com.jianbing.HelloRpc
     private String interfaceName;
 
