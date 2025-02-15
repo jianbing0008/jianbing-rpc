@@ -1,9 +1,16 @@
 package com.jianbing.transport.message;
 
+import lombok.*;
+
 /**
  * 请求调用方所请求的接口方法信息
  * helloRpc.sayHi("你好");
  */
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@ToString
+@Builder
 public class RequestPayload {
     // 请求的接口名称 -- com.jianbing.HelloRpc
     private String interfaceName;
@@ -18,6 +25,6 @@ public class RequestPayload {
     private Object[] parameters; // 用来执行方法调用
 
     // 返回值类型 -- [java.lang.String]
-    private Class<?>[] returnTypes;
+    private Class<?> returnType;
 
 }

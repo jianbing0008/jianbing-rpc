@@ -1,9 +1,6 @@
 package com.jianbing.transport.message;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 /**
  * 服务调用方发起的请求内容
@@ -12,6 +9,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
+@Builder
 public class RpcRequest {
 
     //请求id

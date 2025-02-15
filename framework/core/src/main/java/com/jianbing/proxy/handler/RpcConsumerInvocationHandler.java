@@ -5,7 +5,8 @@ import com.jianbing.discovery.NettyBootStrapInitializer;
 import com.jianbing.discovery.Registry;
 import com.jianbing.excepetions.DiscoveryException;
 import com.jianbing.excepetions.NetworkException;
-import io.netty.buffer.Unpooled;
+import com.jianbing.transport.message.RequestPayload;
+import com.jianbing.transport.message.RpcRequest;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import lombok.AllArgsConstructor;
@@ -14,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -53,6 +53,21 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
         /**
          * --------------------封装报文---------------------------
          */
+        RequestPayload requestPayload = RequestPayload.builder()
+                .interfaceName(interfaceRef.getName())
+                .methodName(method.getName())
+                .parameterTypes(method.getParameterTypes())
+                .parameters(args)
+                .returnType(method.getReturnType())
+                .build();
+        // todo: 需要对各种请求id和类型做处理
+        RpcRequest rpcRequest = RpcRequest.builder()
+                .requestId(1L)
+                .requestType((byte) 1)
+                .compressType((byte) 1)
+                .serializeType((byte) 1)
+                .requestPayload(requestPayload)
+                .build();
 
 
         /**
@@ -64,7 +79,8 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
         RpcBootstrap.PENDING_REQUEST.put(1L, completableFuture);
 
         // 网络通信（Netty异步写入）
-        channel.writeAndFlush(Unpooled.copiedBuffer("--Hello--server--".getBytes(StandardCharsets.UTF_8))).addListener( (ChannelFutureListener) promise -> {
+        // writeAndFlush 写出一个请求，这个请求的实例会进入pipeline执行出站一系列操作
+        channel.writeAndFlush(rpcRequest).addListener( (ChannelFutureListener) promise -> {
 
             if(!promise.isSuccess()){
                 completableFuture.completeExceptionally(promise.cause());
