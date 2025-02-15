@@ -87,14 +87,12 @@ public class RpcMessageEncoder extends MessageToByteEncoder<RpcRequest> {
      * @throws RuntimeException 如果序列化过程中发生IO异常，则抛出运行时异常
      */
     private byte[] getBodyBytes(RequestPayload requestPayload) {
+        //todo: 需要针对不同的消息类型做不同的处理。 心跳请求没有payLoad
         try {
-            // 创建字节输出流
+            // 序列化
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            // 创建对象输出流，用于序列化对象
             ObjectOutputStream outputStream = new ObjectOutputStream(baos);
-            // 将请求负载对象序列化到输出流中
             outputStream.writeObject(requestPayload);
-            // 获取序列化后的字节数组
             return baos.toByteArray();
         } catch (IOException e) {
             log.error("序列化失败", e);
