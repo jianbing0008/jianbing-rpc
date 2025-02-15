@@ -38,7 +38,7 @@ import java.io.ObjectOutputStream;
  * 出站时，第一个经过的处理器
  */
 @Slf4j
-public class RpcMessageEncoder extends MessageToByteEncoder<RpcRequest> {
+public class RpcRequestEncoder extends MessageToByteEncoder<RpcRequest> {
     @Override
     protected void encode(ChannelHandlerContext channelHandlerContext, RpcRequest rpcRequest, ByteBuf byteBuf) throws Exception {
         // 12B魔数
@@ -82,7 +82,10 @@ public class RpcMessageEncoder extends MessageToByteEncoder<RpcRequest> {
         byteBuf.writerIndex(writerIndex);
 
         // Encoder中打印写入的full_length
-        log.debug("Total  length written: {}", MessageFormatConstant.HEADER_LENGTH + body.length);
+        if (log.isDebugEnabled()) {
+            log.debug("请求---->【{}】已完成编码", rpcRequest.getRequestId());
+            log.debug("request Total length written: {}", MessageFormatConstant.HEADER_LENGTH + body.length);
+        }
     }
 
     /**

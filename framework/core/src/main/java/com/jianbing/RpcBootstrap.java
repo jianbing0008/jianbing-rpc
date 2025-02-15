@@ -1,7 +1,8 @@
 package com.jianbing;
 
 import com.jianbing.channelHandler.handler.MethodCallHandler;
-import com.jianbing.channelHandler.handler.RpcMessageDecoder;
+import com.jianbing.channelHandler.handler.RpcRequestDecoder;
+import com.jianbing.channelHandler.handler.RpcResponseEncoder;
 import com.jianbing.discovery.Registry;
 import com.jianbing.discovery.RegistryConfig;
 import io.netty.bootstrap.ServerBootstrap;
@@ -137,10 +138,13 @@ public class RpcBootstrap {
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
                             //核心，在这里添加很多入站和出战的handler
                             socketChannel.pipeline().addLast(new LoggingHandler()) //日志
-                                                    // 解码
-                                                    .addLast(new RpcMessageDecoder())
+                                                    // 请求解码
+                                                    .addLast(new RpcRequestDecoder())
                                                     // 根据请求进行方法调用
-                                                    .addLast(new MethodCallHandler());
+                                                    .addLast(new MethodCallHandler())
+                                                    // 响应编码
+                                                    .addLast(new RpcResponseEncoder())
+                            ;
                         }
                     });
             //4、绑定端口

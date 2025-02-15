@@ -1,9 +1,7 @@
 package com.jianbing.channelHandler.handler;
 
-import com.jianbing.enumeration.RequestType;
 import com.jianbing.transport.message.MessageFormatConstant;
-import com.jianbing.transport.message.RequestPayload;
-import com.jianbing.transport.message.RpcRequest;
+import com.jianbing.transport.message.RpcResponse;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
@@ -23,7 +21,7 @@ import java.util.Arrays;
  *  * <pre>
  *  * *   0    1    2    3    4    5    6    7    8    9    10   11   12   13   14   15   16   17   18   19   20   21   22   23   24   25   26   27   28   29
  *  * *   +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
- *  * *   |<--------------------- magic (12B) ------------------>| ver|head_len |  full_length (4B) | qt |ser |com |<---------- requestId (8B) ----------->|
+ *  * *   |<--------------------- magic (12B) ------------------>| ver|head_len |  full_length (4B) |code|ser |com |<---------- requestId (8B) ----------->|
  *  * *   +----------------------------------------------------------------------------+---+-------------+---------------------------------+---+---+---+---+
  *  * *   |                                                                                                                                                |
  *  * *   |                                                                     body                                                                       |
@@ -34,16 +32,16 @@ import java.util.Arrays;
  *  * 1B version(版本)   ----> 1
  *  * 2B header length 首部的长度
  *  * 4B full length 报文总长度
+ *  * 1B code
  *  * 1B serialize
  *  * 1B compress
- *  * 1B requestType
  *  * 8B requestId
  *  *
  *  * body
  */
 @Slf4j
 @Builder
-public class RpcMessageDecoder extends LengthFieldBasedFrameDecoder {
+public class RpcResponseDecoder extends LengthFieldBasedFrameDecoder {
 
 
     /**
@@ -54,7 +52,7 @@ public class RpcMessageDecoder extends LengthFieldBasedFrameDecoder {
      * 读取长度字段（lengthFieldLength）
      * 根据长度字段值动态计算剩余需读取的字节数（lengthAdjustment）
      */
-    public RpcMessageDecoder() {
+    public RpcResponseDecoder() {
         super(
                 // 找到当前报文的总长度，截取报文，截取出来的报文才可以进行解析
                 MessageFormatConstant.MAX_FRAME_LENGTH,  // 最大帧长度，超过maxFrameLength会直接丢弃
@@ -94,8 +92,8 @@ public class RpcMessageDecoder extends LengthFieldBasedFrameDecoder {
         // 4、解析总长度
         int fullLength = byteBuf.readInt();
 
-        // 5、解析请求类型
-        byte requestType = byteBuf.readByte();
+        // 5、解析响应码
+        byte responseCode = byteBuf.readByte();
 
         // 6、解析序列化类型
         byte serializeType = byteBuf.readByte();
@@ -106,37 +104,41 @@ public class RpcMessageDecoder extends LengthFieldBasedFrameDecoder {
         // 8、解析请求id
         long requestId = byteBuf.readLong();
 
-        RpcRequest rpcRequest = RpcRequest.builder()
-                .requestType(requestType)
+        RpcResponse rpcResponse = RpcResponse.builder()
+                .requestId(requestId)
+                .code(responseCode)
                 .serializeType(serializeType)
                 .compressType(compressType)
-                .requestId(requestId)
                 .build();
 
-        // Decoder中打印读取的magic、version、full_length等字段
-        log.debug("read_full_length: {}", fullLength);
-
-        //心跳检测没有负载，此处可以判断并直接返回
-        if (requestType == RequestType.HEART_BEAT.getCode()) {
-            return rpcRequest;
-        }
+        //todo 心跳检测没有负载，此处可以判断并直接返回
+//        if (respCode == RequestType.HEART_BEAT.getCode()) {
+//            return rpcRequest;
+//        }
 
         // 9、解析请求体
-        int payloadLength = fullLength - headLength;
-        byte[] payload = new byte[payloadLength];
-        byteBuf.readBytes(payload);
+        int bodyLenth = fullLength - headLength;
+        byte[] payLoad = new byte[bodyLenth];
+        byteBuf.readBytes(payLoad);
 
         // todo: 解压缩
 
         // todo: 反序列化
         try{
-            ByteArrayInputStream bis = new ByteArrayInputStream(payload);
+            ByteArrayInputStream bis = new ByteArrayInputStream(payLoad);
             ObjectInputStream ois = new ObjectInputStream(bis);
-            RequestPayload requestPayload = (RequestPayload)ois.readObject();
-            rpcRequest.setRequestPayload(requestPayload);
+            Object body = ois.readObject();
+            rpcResponse.setBody(body);
         } catch (IOException | ClassNotFoundException e) {
-            log.error("请求【{}】反序列化失败", requestId, e);
+            log.error("响应【{}】反序列化失败", requestId, e);
         }
-        return rpcRequest;
+
+        // Decoder中打印读取的magic、version、full_length等字段
+        if (log.isDebugEnabled()) {
+            log.debug("响应---->【{}】已完成解码", rpcResponse.getRequestId());
+            log.debug("read_full_response_length: {}", fullLength);
+        }
+
+        return rpcResponse;
     }
 }

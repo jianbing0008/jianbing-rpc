@@ -2,28 +2,47 @@ package com.jianbing.channelHandler.handler;
 
 import com.jianbing.RpcBootstrap;
 import com.jianbing.ServiceConfig;
+import com.jianbing.enumeration.ResponseCode;
 import com.jianbing.transport.message.RequestPayload;
 import com.jianbing.transport.message.RpcRequest;
+import com.jianbing.transport.message.RpcResponse;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationTargetException;
 
 @Slf4j
+@Builder
 public class MethodCallHandler extends SimpleChannelInboundHandler<RpcRequest> {
+    public MethodCallHandler() {
+        // 构造函数
+    }
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcRequest rpcRequest) throws Exception {
        // 1、获取负载内容
         RequestPayload requestPayload = rpcRequest.getRequestPayload();
 
         // 2、根据负载内容调用方法
-        Object object = callTargetMethod(requestPayload);
+        Object result = callTargetMethod(requestPayload);
 
-        // todo:3、封装响应
+        if (log.isDebugEnabled()) {
+            log.debug("请求---->【{}】已在服务端完成方法调用", rpcRequest.getRequestId());
+        }
+
+        // 3、封装响应
+        RpcResponse rpcResponse = RpcResponse.builder()
+                .requestId(rpcRequest.getRequestId())
+                .code((ResponseCode.SUCCESS.getCode()))
+                .serializeType(rpcRequest.getSerializeType())
+                .compressType(rpcRequest.getCompressType())
+                .body(result)
+                .build();
+
 
         // 4、写出响应
-        channelHandlerContext.channel().writeAndFlush(object);
+        channelHandlerContext.channel().writeAndFlush(rpcResponse);
 
     }
 
