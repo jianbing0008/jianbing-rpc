@@ -1,5 +1,6 @@
 package com.jianbing.serialize;
 
+import com.jianbing.serialize.impl.HessianSerializer;
 import com.jianbing.serialize.impl.JdkSerializer;
 import com.jianbing.serialize.impl.JsonSerializer;
 
@@ -21,10 +22,13 @@ public class SerializerFactory {
         // 初始化序列化器，并包装到SerializerWrapper中
         SerializerWrapper jdk = new SerializerWrapper((byte) 1, "jdk", new JdkSerializer());
         SerializerWrapper json = new SerializerWrapper((byte) 2, "json", new JsonSerializer());
+        SerializerWrapper hessian = new SerializerWrapper((byte) 3, "hessian", new HessianSerializer());
         SERIALIZE_CACHE_BY_TYPE.put("jdk", jdk);
         SERIALIZE_CACHE_BY_TYPE.put("json", json);
+        SERIALIZE_CACHE_BY_TYPE.put("hessian", hessian);
         SERIALIZE_CACHE_BY_CODE.put((byte) 1, jdk);
         SERIALIZE_CACHE_BY_CODE.put((byte) 2, json);
+        SERIALIZE_CACHE_BY_CODE.put((byte) 3, hessian);
     }
 
     /**

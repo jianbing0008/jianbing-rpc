@@ -30,6 +30,7 @@
         <fastjson2.version>2.0.53</fastjson2.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
         <lombok.version>1.18.30</lombok.version>
+        <hessian.version>4.0.66</hessian.version>
     </properties>
 
     <dependencies>
@@ -71,7 +72,12 @@
                 <artifactId>lombok</artifactId>
                 <version>${lombok.version}</version>
             </dependency>
-
+<!--            hessian-->
+            <dependency>
+                <groupId>com.caucho</groupId>
+                <artifactId>hessian</artifactId>
+                <version>${hessian.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
