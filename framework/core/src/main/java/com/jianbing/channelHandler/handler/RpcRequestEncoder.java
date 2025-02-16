@@ -1,16 +1,13 @@
 package com.jianbing.channelHandler.handler;
 
+import com.jianbing.serialize.JdkSerializer;
+import com.jianbing.serialize.Serializer;
 import com.jianbing.transport.message.MessageFormatConstant;
-import com.jianbing.transport.message.RequestPayload;
 import com.jianbing.transport.message.RpcRequest;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import lombok.extern.slf4j.Slf4j;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 
 /**
  * 自定义协议编码器
@@ -61,8 +58,9 @@ public class RpcRequestEncoder extends MessageToByteEncoder<RpcRequest> {
         // 8B请求id
         byteBuf.writeLong(rpcRequest.getRequestId());
 
+        Serializer serializer = new JdkSerializer();
         // 写入请求体（requestPayload）
-        byte[] body = getBodyBytes(rpcRequest.getRequestPayload());
+        byte[] body = serializer.serialize(rpcRequest.getRequestPayload());
         if(body != null){
             byteBuf.writeBytes(body);
         }
@@ -88,30 +86,5 @@ public class RpcRequestEncoder extends MessageToByteEncoder<RpcRequest> {
         }
     }
 
-    /**
-     * 将请求负载对象序列化为字节数组
-     *
-     * @param requestPayload 请求负载对象，包含需要序列化的数据
-     * @return 返回序列化后的字节数组
-     * @throws RuntimeException 如果序列化过程中发生IO异常，则抛出运行时异常
-     */
-    private byte[] getBodyBytes(RequestPayload requestPayload) {
-        //心跳请求没有payLoad, 直接返回null
-        if (requestPayload == null) {
-            return null;
-        }
-        try {
-            // 序列化
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream outputStream = new ObjectOutputStream(baos);
-            outputStream.writeObject(requestPayload);
 
-            // 压缩
-
-            return baos.toByteArray();
-        } catch (IOException e) {
-            log.error("序列化失败", e);
-            throw new RuntimeException(e);
-        }
-    }
 }
