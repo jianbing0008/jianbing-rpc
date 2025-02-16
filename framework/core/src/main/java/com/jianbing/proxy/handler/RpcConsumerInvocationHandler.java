@@ -63,7 +63,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
                 .build();
         // todo: 需要对各种请求id和类型做处理
         RpcRequest rpcRequest = RpcRequest.builder()
-                .requestId(1L)
+                .requestId(RpcBootstrap.ID_GENERATOR.getId())
                 .requestType(RequestType.REQUEST.getCode())
                 .compressType((byte) 1)
                 .serializeType((byte) 1)
