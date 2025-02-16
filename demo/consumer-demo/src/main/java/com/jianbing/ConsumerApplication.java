@@ -20,7 +20,7 @@ public class ConsumerApplication {
         RpcBootstrap.getInstance()
                 .application("first-rpc-provider")
                 .registry(new RegistryConfig("zookeeper://127.0.0.1:2181"))
-                .serialize("hessian")
+                .serialize("json")
                 .reference(reference);
 
         //获取一个代理对象
