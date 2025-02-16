@@ -39,6 +39,7 @@ public class RpcBootstrap {
     private int port = 8088;
 
     public static final IdGenerator ID_GENERATOR = new IdGenerator(1, 2);
+    public static String SERIALIZE_TYPE = "jdk";
 
     // 注册中心
     private Registry registry;
@@ -177,4 +178,11 @@ public class RpcBootstrap {
         return this;
     }
 
+    public RpcBootstrap serialize(String serializeType) {
+        SERIALIZE_TYPE = serializeType;
+        if(log.isDebugEnabled()){
+            log.debug("当前工程使用的序列化协议:{}", SERIALIZE_TYPE);
+        }
+        return this;
+    }
 }

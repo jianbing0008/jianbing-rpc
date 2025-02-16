@@ -6,6 +6,7 @@ import com.jianbing.discovery.Registry;
 import com.jianbing.enumeration.RequestType;
 import com.jianbing.excepetions.DiscoveryException;
 import com.jianbing.excepetions.NetworkException;
+import com.jianbing.serialize.SerializerFactory;
 import com.jianbing.transport.message.RequestPayload;
 import com.jianbing.transport.message.RpcRequest;
 import io.netty.channel.Channel;
@@ -66,7 +67,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
                 .requestId(RpcBootstrap.ID_GENERATOR.getId())
                 .requestType(RequestType.REQUEST.getCode())
                 .compressType((byte) 1)
-                .serializeType((byte) 1)
+                .serializeType(SerializerFactory.getSerializerWrapper(RpcBootstrap.SERIALIZE_TYPE).getCode())
                 .requestPayload(requestPayload)
                 .build();
 

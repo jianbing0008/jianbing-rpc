@@ -1,6 +1,9 @@
 package com.jianbing.channelHandler.handler;
 
+import com.jianbing.serialize.Serializer;
+import com.jianbing.serialize.SerializerFactory;
 import com.jianbing.transport.message.MessageFormatConstant;
+import com.jianbing.transport.message.RequestPayload;
 import com.jianbing.transport.message.RpcResponse;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -8,9 +11,6 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.Arrays;
 
 /**
@@ -124,14 +124,8 @@ public class RpcResponseDecoder extends LengthFieldBasedFrameDecoder {
         // todo: 解压缩
 
         // todo: 反序列化
-        try{
-            ByteArrayInputStream bis = new ByteArrayInputStream(payLoad);
-            ObjectInputStream ois = new ObjectInputStream(bis);
-            Object body = ois.readObject();
-            rpcResponse.setBody(body);
-        } catch (IOException | ClassNotFoundException e) {
-            log.error("响应【{}】反序列化失败", requestId, e);
-        }
+        Serializer serializer = SerializerFactory.getSerializerWrapper(serializeType).getSerializer();
+        rpcResponse.setBody(serializer.deserialize(payLoad, Object.class));
 
         // Decoder中打印读取的magic、version、full_length等字段
         if (log.isDebugEnabled()) {

@@ -1,7 +1,8 @@
 package com.jianbing.channelHandler.handler;
 
-import com.jianbing.serialize.JdkSerializer;
+import com.jianbing.RpcBootstrap;
 import com.jianbing.serialize.Serializer;
+import com.jianbing.serialize.SerializerFactory;
 import com.jianbing.transport.message.MessageFormatConstant;
 import com.jianbing.transport.message.RpcRequest;
 import io.netty.buffer.ByteBuf;
@@ -58,7 +59,7 @@ public class RpcRequestEncoder extends MessageToByteEncoder<RpcRequest> {
         // 8B请求id
         byteBuf.writeLong(rpcRequest.getRequestId());
 
-        Serializer serializer = new JdkSerializer();
+        Serializer serializer = SerializerFactory.getSerializerWrapper(RpcBootstrap.SERIALIZE_TYPE).getSerializer();
         // 写入请求体（requestPayload）
         byte[] body = serializer.serialize(rpcRequest.getRequestPayload());
         if(body != null){

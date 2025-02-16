@@ -1,6 +1,8 @@
 package com.jianbing.channelHandler.handler;
 
 import com.jianbing.enumeration.RequestType;
+import com.jianbing.serialize.Serializer;
+import com.jianbing.serialize.SerializerFactory;
 import com.jianbing.transport.message.MessageFormatConstant;
 import com.jianbing.transport.message.RequestPayload;
 import com.jianbing.transport.message.RpcRequest;
@@ -10,9 +12,6 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.Arrays;
 
 /**
@@ -125,15 +124,13 @@ public class RpcRequestDecoder extends LengthFieldBasedFrameDecoder {
 
         // todo: 解压缩
 
-        // todo: 反序列化
-        try{
-            ByteArrayInputStream bis = new ByteArrayInputStream(payload);
-            ObjectInputStream ois = new ObjectInputStream(bis);
-            RequestPayload requestPayload = (RequestPayload)ois.readObject();
-            rpcRequest.setRequestPayload(requestPayload);
-        } catch (IOException | ClassNotFoundException e) {
-            log.error("请求【{}】反序列化失败", requestId, e);
-        }
+        // 反序列化
+        // 读出来的反序列化方式是 1，而不是"jdk"
+        Serializer serializer = SerializerFactory.getSerializerWrapper(serializeType).getSerializer();
+        RequestPayload requestPayload = serializer.deserialize(payload, RequestPayload.class);
+        rpcRequest.setRequestPayload(requestPayload);
+
+
 
         // Decoder中打印读取的magic、version、full_length等字段
         if (log.isDebugEnabled()) {

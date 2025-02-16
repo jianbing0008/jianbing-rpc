@@ -1,6 +1,7 @@
-package com.jianbing.serialize;
+package com.jianbing.serialize.impl;
 
 import com.jianbing.excepetions.SerializeException;
+import com.jianbing.serialize.Serializer;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
@@ -9,7 +10,7 @@ import java.io.*;
  * 使用JDK自带的序列化机制实现的序列化器
  */
 @Slf4j
-public class JdkSerializer implements Serializer{
+public class JdkSerializer implements Serializer {
     /**
      * 序列化给定的对象
      *
@@ -27,6 +28,9 @@ public class JdkSerializer implements Serializer{
             ObjectOutputStream outputStream = new ObjectOutputStream(baos);
         ){
             outputStream.writeObject(object);
+            if(log.isDebugEnabled()){
+                log.debug("对象【{}】序列化完成", object);
+            }
             return baos.toByteArray();
         }catch (IOException e) {
             log.error("序列化对象【{}】时发生异常", object);
@@ -52,6 +56,9 @@ public class JdkSerializer implements Serializer{
             ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
             ObjectInputStream inputStream = new ObjectInputStream(bais);
         ){
+            if(log.isDebugEnabled()){
+                log.debug("类【{}】反序列化完成", clazz);
+            }
             return (T) inputStream.readObject();
         }catch (IOException | ClassNotFoundException e) {
             log.error("反序列化对象【{}】时发生异常", clazz);
