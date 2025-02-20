@@ -37,9 +37,17 @@ public class SerializerFactory {
      * @return 对应序列化类型的序列化器包装类实例，如果不存在则返回null
      */
     public static SerializerWrapper getSerializerWrapper(String serializeType) {
-        return SERIALIZE_CACHE_BY_TYPE.get(serializeType);
+        SerializerWrapper serializerWrapper = SERIALIZE_CACHE_BY_TYPE.get(serializeType);
+        if(serializerWrapper == null){
+            return SERIALIZE_CACHE_BY_TYPE.get(serializeType);
+        }
+        return serializerWrapper;
     }
     public static SerializerWrapper getSerializerWrapper(byte serializeCode) {
-        return SERIALIZE_CACHE_BY_CODE.get(serializeCode);
+        SerializerWrapper serializerWrapper = SERIALIZE_CACHE_BY_CODE.get(serializeCode);
+        if(serializerWrapper == null){
+            return SERIALIZE_CACHE_BY_TYPE.get("jdk");
+        }
+        return serializerWrapper;
     }
 }

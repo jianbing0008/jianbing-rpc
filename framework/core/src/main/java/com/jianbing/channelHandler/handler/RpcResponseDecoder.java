@@ -1,9 +1,10 @@
 package com.jianbing.channelHandler.handler;
 
+import com.jianbing.compress.Compressor;
+import com.jianbing.compress.CompressorFactory;
 import com.jianbing.serialize.Serializer;
 import com.jianbing.serialize.SerializerFactory;
 import com.jianbing.transport.message.MessageFormatConstant;
-import com.jianbing.transport.message.RequestPayload;
 import com.jianbing.transport.message.RpcResponse;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -121,7 +122,9 @@ public class RpcResponseDecoder extends LengthFieldBasedFrameDecoder {
         byte[] payLoad = new byte[bodyLenth];
         byteBuf.readBytes(payLoad);
 
-        // todo: 解压缩
+        // 解压缩
+        Compressor compressor = CompressorFactory.getSerializerWrapper(compressType).getCompressor();
+        payLoad = compressor.decompress(payLoad);
 
         // todo: 反序列化
         Serializer serializer = SerializerFactory.getSerializerWrapper(serializeType).getSerializer();

@@ -1,6 +1,7 @@
 package com.jianbing.channelHandler.handler;
 
-import com.jianbing.RpcBootstrap;
+import com.jianbing.compress.Compressor;
+import com.jianbing.compress.CompressorFactory;
 import com.jianbing.serialize.Serializer;
 import com.jianbing.serialize.SerializerFactory;
 import com.jianbing.transport.message.MessageFormatConstant;
@@ -59,9 +60,17 @@ public class RpcRequestEncoder extends MessageToByteEncoder<RpcRequest> {
         // 8B请求id
         byteBuf.writeLong(rpcRequest.getRequestId());
 
-        Serializer serializer = SerializerFactory.getSerializerWrapper(RpcBootstrap.SERIALIZE_TYPE).getSerializer();
+        Serializer serializer = SerializerFactory.getSerializerWrapper(rpcRequest.getSerializeType()).getSerializer();
+
         // 写入请求体（requestPayload）
         byte[] body = serializer.serialize(rpcRequest.getRequestPayload());
+
+
+        // 根据配置的压缩方式进行压缩
+        Compressor compressor = CompressorFactory.getSerializerWrapper(rpcRequest.getCompressType()).getCompressor();
+        body = compressor.compress(body);
+
+
         if(body != null){
             byteBuf.writeBytes(body);
         }

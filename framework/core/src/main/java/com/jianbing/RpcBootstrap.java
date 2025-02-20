@@ -40,6 +40,7 @@ public class RpcBootstrap {
 
     public static final IdGenerator ID_GENERATOR = new IdGenerator(1, 2);
     public static String SERIALIZE_TYPE = "jdk";
+    public static String COMPRESS_TYPE = "gzip";
 
     // 注册中心
     private Registry registry;
@@ -182,6 +183,14 @@ public class RpcBootstrap {
         SERIALIZE_TYPE = serializeType;
         if(log.isDebugEnabled()){
             log.debug("当前工程使用的序列化协议:{}", SERIALIZE_TYPE);
+        }
+        return this;
+    }
+
+    public RpcBootstrap compress(String compressType) {
+        COMPRESS_TYPE = compressType;
+        if(log.isDebugEnabled()){
+            log.debug("当前工程使用的压缩协议:{}", COMPRESS_TYPE);
         }
         return this;
     }

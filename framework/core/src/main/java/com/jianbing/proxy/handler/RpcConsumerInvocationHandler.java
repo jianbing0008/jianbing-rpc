@@ -1,6 +1,7 @@
 package com.jianbing.proxy.handler;
 
 import com.jianbing.RpcBootstrap;
+import com.jianbing.compress.CompressorFactory;
 import com.jianbing.discovery.NettyBootStrapInitializer;
 import com.jianbing.discovery.Registry;
 import com.jianbing.enumeration.RequestType;
@@ -66,7 +67,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
         RpcRequest rpcRequest = RpcRequest.builder()
                 .requestId(RpcBootstrap.ID_GENERATOR.getId())
                 .requestType(RequestType.REQUEST.getCode())
-                .compressType((byte) 1)
+                .compressType(CompressorFactory.getCompressorWrapper(RpcBootstrap.COMPRESS_TYPE).getCode())
                 .serializeType(SerializerFactory.getSerializerWrapper(RpcBootstrap.SERIALIZE_TYPE).getCode())
                 .requestPayload(requestPayload)
                 .build();

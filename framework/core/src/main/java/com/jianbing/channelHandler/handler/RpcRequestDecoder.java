@@ -1,5 +1,7 @@
 package com.jianbing.channelHandler.handler;
 
+import com.jianbing.compress.Compressor;
+import com.jianbing.compress.CompressorFactory;
 import com.jianbing.enumeration.RequestType;
 import com.jianbing.serialize.Serializer;
 import com.jianbing.serialize.SerializerFactory;
@@ -122,7 +124,9 @@ public class RpcRequestDecoder extends LengthFieldBasedFrameDecoder {
         byte[] payload = new byte[payloadLength];
         byteBuf.readBytes(payload);
 
-        // todo: 解压缩
+        // 解压缩
+        Compressor compressor = CompressorFactory.getSerializerWrapper(compressType).getCompressor();
+        payload = compressor.decompress(payload);
 
         // 反序列化
         // 读出来的反序列化方式是 1，而不是"jdk"
