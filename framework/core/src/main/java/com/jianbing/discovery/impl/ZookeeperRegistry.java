@@ -49,7 +49,7 @@ public class ZookeeperRegistry extends AbstractRegistry {
     }
 
     @Override
-    public InetSocketAddress lookup(String serviceName) {
+    public List<InetSocketAddress> lookup(String serviceName) {
         // 1.找到服务对应的节点
         String ServiceNode = Constant.BASE_PROVIDERS_PATH +"/"+ serviceName;
         // 2.获取该节点的子节点,如：192.168.1.1:8088
@@ -64,6 +64,6 @@ public class ZookeeperRegistry extends AbstractRegistry {
         }
         //todo: 每次调用相关方法时都需要从注册中心拉取服务列表吗？ 本地缓存 + watcher
         //todo: 如何合理选择一个可用的服务，而不是只获取第一个     负载均衡策略
-        return collect.get(0);
+        return collect;
     }
 }

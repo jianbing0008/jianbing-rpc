@@ -42,8 +42,8 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
 //        log.info("method---->{}", method.getName());
 //        log.info("args---->{}", args);
 
-        // 1.发现服务，从注册中心寻找一个可用的服务
-        InetSocketAddress address = registry.lookup(interfaceRef.getName());// 传入服务名,返回ip+端口
+        // 1.获取当前配置的负载均衡器，选取一个可用节点
+        InetSocketAddress address = RpcBootstrap.LOAD_BALANCER.selectServiceAddress(interfaceRef.getName());
         log.info("服务调用方，发现了服务【{}】的可用主机【{}】", interfaceRef.getName(), address);
 
         // 2.尝试获取一个可用的通道

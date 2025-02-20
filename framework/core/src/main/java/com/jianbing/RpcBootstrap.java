@@ -5,6 +5,8 @@ import com.jianbing.channelHandler.handler.RpcRequestDecoder;
 import com.jianbing.channelHandler.handler.RpcResponseEncoder;
 import com.jianbing.discovery.Registry;
 import com.jianbing.discovery.RegistryConfig;
+import com.jianbing.loadBalancer.LoadBalancer;
+import com.jianbing.loadBalancer.impl.RoundRobinLoadBalancer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -44,6 +46,7 @@ public class RpcBootstrap {
 
     // 注册中心
     private Registry registry;
+    public static  LoadBalancer LOAD_BALANCER;
 
     // 连接的缓存, 对象为key,要看是否重写equals和toString
     public static final Map<InetSocketAddress, Channel> CHANNEL_CACHE = new ConcurrentHashMap<>(16);
@@ -79,9 +82,9 @@ public class RpcBootstrap {
      * @return this 当前实例
      */
     public RpcBootstrap registry(RegistryConfig registryConfig) {
-        // 维护一个zk实例，但是这样写就会将zk与当前工程耦合，考虑后续优化
-
         this.registry = registryConfig.getRegistry();
+        //todo 需要修改
+        RpcBootstrap.LOAD_BALANCER = new RoundRobinLoadBalancer();
         return this;
     }
 
@@ -193,5 +196,9 @@ public class RpcBootstrap {
             log.debug("当前工程使用的压缩协议:{}", COMPRESS_TYPE);
         }
         return this;
+    }
+
+    public Registry getRegistry() {
+        return registry;
     }
 }

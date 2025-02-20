@@ -3,6 +3,7 @@ package com.jianbing.discovery;
 import com.jianbing.ServiceConfig;
 
 import java.net.InetSocketAddress;
+import java.util.List;
 
 public interface Registry{
     /**
@@ -12,9 +13,9 @@ public interface Registry{
     void register(ServiceConfig<?> serviceConfig);
 
     /**
-     * 从注册中心拉取一个可用的服务
+     * 从注册中心拉取服务列表
      * @param serviceName 服务名称
-     * @return 服务地址（ip+端口）
+     * @return 服务地址列表（ip+端口）
      */
-    InetSocketAddress lookup(String serviceName);
+    List<InetSocketAddress> lookup(String serviceName);
 }
